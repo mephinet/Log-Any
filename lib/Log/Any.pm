@@ -46,8 +46,8 @@ sub _export_to_caller {
     my @params;
     while ( my $param = shift @_ ) {
         if ( !$saw_log_param && $param =~ /^\$(\w+)/ ) {
-            $saw_log_param = $1;   # defer until later
-            next;                  # singular
+            $saw_log_param = $1;    # defer until later
+            next;                   # singular
         }
         else {
             push @params, $param, shift @_;    # pairwise
@@ -78,24 +78,26 @@ sub get_logger {
 
     if ( my $default = delete $params{'default_adapter'} ) {
         my @default_adapter_params = ();
-        if (ref $default eq 'ARRAY') {
-            ($default, @default_adapter_params) = @{ $default };
+        if ( ref $default eq 'ARRAY' ) {
+            ( $default, @default_adapter_params ) = @{$default};
         }
+
         # Every default adapter is set only for a given logger category.
         # When another adapter is configured (by using
         # Log::Any::Adapter->set) for this category, it takes
         # precedence, but if that adapter is later removed, the default
         # we set here takes over again.
-        $class->_manager->set_default(
-            $category, $default, @default_adapter_params
-        );
+        $class->_manager->set_default( $category, $default,
+            @default_adapter_params );
     }
 
-    my $adapter = $class->_manager->get_adapter( $category );
+    my $adapter = $class->_manager->get_adapter($category);
 
     require_dynamic($proxy_class);
     return $proxy_class->new(
-        %params, adapter => $adapter, category => $category,
+        %params,
+        adapter  => $adapter,
+        category => $category,
     );
 }
 
@@ -135,7 +137,11 @@ In a CPAN or other module:
     # log a string
     $log->error("an error occurred");
 
-    # log a string and data using a formatting filter
+    # log a string and some data
+    $log->info("program started",
+        {progname => $0, pid => $$, perl_version => $]});
+
+    # log a string and data using a format string
     $log->debugf("arguments are: %s", \@_);
 
     # log an error and throw an exception
@@ -278,7 +284,16 @@ C<warn> call).
 You should B<not> include a newline in your message; that is the responsibility
 of the logging mechanism, which may or may not want the newline.
 
-There are also versions of each of these methods with an additional "f" suffix
+If you want to log additional structured data alongside with your string, you
+can add a hashref to your log string. e.g.
+
+    $log->info("program started",
+        {progname => $0, pid => $$, perl_version => $]});
+
+If the configured L<Log::Any::Adapter> does not support logging structured data,
+the hash will be converted to a string using L<Data::Dumper>.
+
+There are also versions of each of the logging methods with an additional "f" suffix
 (C<infof>, C<errorf>, C<debugf>, etc.) that format a list of arguments.  The
 specific formatting mechanism and meaning of the arguments is controlled by the
 L<Log::Any::Proxy> object.
@@ -286,14 +301,15 @@ L<Log::Any::Proxy> object.
     $log->errorf("an error occurred: %s", $@);
     $log->debugf("called with %d params: %s", $param_count, \@params);
 
-By default it renders like C<sprintf>, with the following additional features:
+By default it renders like L<C<sprintf>|perlfunc/"sprintf FORMAT, LIST">,
+with the following additional features:
 
 =over
 
 =item *
 
 Any complex references (like C<\@params> above) are automatically converted to
-single-line strings with C<Data::Dumper>.
+single-line strings with L<Data::Dumper>.
 
 =item *
 
@@ -380,7 +396,7 @@ logging mechanism.
 Each of the logging mechanisms have their pros and cons, particularly in terms
 of how they are configured. For example, log4perl offers a great deal of power
 and flexibility but uses a global and potentially heavy configuration, whereas
-C<Log::Dispatch> is extremely configuration-light but doesn't handle
+L<Log::Dispatch> is extremely configuration-light but doesn't handle
 categories. There is also the unnamed future logger that may have advantages
 over either of these two, and all the custom in-house loggers people have
 created and cannot (for whatever reason) stop using.
