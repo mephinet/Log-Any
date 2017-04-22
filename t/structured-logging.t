@@ -13,7 +13,7 @@ foreach my $method ( Log::Any->logging_methods() ) {
 }
 foreach my $method ( Log::Any->detection_methods() ) {
     no strict 'refs';
-    *$method = sub { 1 };
+    *$method = sub {1};
 }
 
 package MyApp::Log::Structured;
@@ -39,11 +39,12 @@ sub structured {
 
 foreach my $method ( Log::Any->detection_methods() ) {
     no strict 'refs';
-    *$method = sub { 1 };
+    *$method = sub {1};
 }
 
 package main;
 use Log::Any::Adapter;
+use Log::Any '$log';
 
 sub create_normal_log_lines {
     my ($log) = @_;
@@ -57,11 +58,9 @@ sub create_normal_log_lines {
 }
 
 Log::Any::Adapter->set('+MyApp::Log::Normal');
-my $log = Log::Any->get_logger;
 create_normal_log_lines($log);
 
 Log::Any::Adapter->set('+MyApp::Log::Structured');
-$log = Log::Any->get_logger;
 create_normal_log_lines($log);
 $log->info(
     'text',
@@ -70,8 +69,8 @@ $log->info(
 );
 
 is_deeply(
-    \@TEXT_LOG,
-    [
+    \@TEXT_LOG, [
+
         "some info",
         "more info",
         "info {with => \"data\"} and more text",
@@ -82,28 +81,27 @@ is_deeply(
 
 is_deeply(
     \@STRUCTURED_LOG,
-    [
-        { messages => ['some info'], level => 'info', category => 'main' },
+    [   { messages => ['some info'], level => 'info', category => 'main' },
         { messages => ['more info'], level => 'info', category => 'main' },
-        {
-            messages => ['info {with => "data"} and more text'],
+        {   messages => ['info {with => "data"} and more text'],
             level    => 'info',
             category => 'main'
         },
-        {
-            messages => ['program started'],
+        {   messages => ['program started'],
             level    => 'debug',
             category => 'main',
             data     => [
-                { perl_version => "5.20.0", progname => "foo.pl", pid => 1234 }
+                {   perl_version => "5.20.0",
+                    progname     => "foo.pl",
+                    pid          => 1234
+                }
             ]
         },
-        {
-            messages => [ 'text', 'and some more text' ],
+        {   messages => [ 'text', 'and some more text' ],
             data     => [
-                {
-                    and => [
-                        'structured', 'data', of => [ arbitrary => 'depth' ]
+                {   and => [
+                        'structured', 'data',
+                        of => [ arbitrary => 'depth' ]
                     ]
                 }
             ],
