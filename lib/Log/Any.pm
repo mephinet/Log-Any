@@ -10,13 +10,13 @@ our $VERSION = '1.050';
 use Log::Any::Manager;
 use Log::Any::Proxy::Null;
 use Log::Any::Adapter::Util qw(
-  require_dynamic
-  detection_aliases
-  detection_methods
-  log_level_aliases
-  logging_aliases
-  logging_and_detection_methods
-  logging_methods
+    require_dynamic
+    detection_aliases
+    detection_methods
+    log_level_aliases
+    logging_aliases
+    logging_and_detection_methods
+    logging_methods
 );
 
 # This is overridden in Log::Any::Test
@@ -74,7 +74,7 @@ sub get_logger {
 
     my $proxy_class = $class->_get_proxy_class( delete $params{proxy_class} );
     my $category =
-      defined $params{category} ? delete $params{'category'} : caller;
+        defined $params{category} ? delete $params{'category'} : caller;
 
     if ( my $default = delete $params{'default_adapter'} ) {
         my @default_adapter_params = ();
@@ -104,7 +104,7 @@ sub get_logger {
 sub _get_proxy_class {
     my ( $self, $proxy_name ) = @_;
     return $Log::Any::OverrideDefaultProxyClass
-      if $Log::Any::OverrideDefaultProxyClass;
+        if $Log::Any::OverrideDefaultProxyClass;
     return "Log::Any::Proxy" if !$proxy_name && _manager->has_consumer;
     return "Log::Any::Proxy::Null" if !$proxy_name;
     my $proxy_class = (
@@ -337,6 +337,27 @@ the detection methods will always return 1.
 
 In contrast, the default logging mechanism - Null - will return 0 for all
 detection methods.
+
+=head2 Log context data
+
+C<Log::Any> supports logging context data by exposing the C<context>
+hashref. All the key/value pairs added to this hash will be printed
+with every log message. You can localize the data so that it will be
+removed again automatically at the end of the block:
+
+    $log->context->{directory} = $dir;
+    for my $file (glob "$dir/*") {
+        local $log->context->{file} = basename($file);
+        $log->warn("Can't read file!") unless -r $file;
+    }
+
+This will produce the following line:
+
+    Can't read file! {directory => '/foo',file => 'bar'}
+
+If the configured L<Log::Any::Adapter> does not support structured
+data, the context hash will be converted to a string using
+L<Data::Dumper>, and will be appended to the log message.
 
 =head2 Setting an alternate default logger
 
