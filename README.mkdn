@@ -235,9 +235,10 @@ data, the context hash will be converted to a string using
 
 ## Setting an alternate default logger
 
-When no other adapters are configured for your logger, `Log::Any` uses
-the `default_adapter`. To choose something other than Null as the
-default, pass it as a parameter when loading `Log::Any`
+When no other adapters are configured for your logger, `Log::Any`
+uses the `default_adapter`. To choose something other than Null as
+the default, either set the `LOG_ANY_DEFAULT_ADAPTER` environment
+variable, or pass it as a parameter when loading `Log::Any`
 
     use Log::Any '$log', default_adapter => 'Stderr';
 
