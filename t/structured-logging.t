@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More;
+use Test::More tests => 2;
 
 use Log::Any::Adapter;
 use Log::Any '$log';
@@ -74,5 +74,3 @@ is_deeply(
     ],
     'identical output of normal log lines when using structured log adapter'
 );
-
-done_testing;
