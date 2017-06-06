@@ -10,13 +10,13 @@ our $VERSION = '1.050';
 use Log::Any::Manager;
 use Log::Any::Proxy::Null;
 use Log::Any::Adapter::Util qw(
-  require_dynamic
-  detection_aliases
-  detection_methods
-  log_level_aliases
-  logging_aliases
-  logging_and_detection_methods
-  logging_methods
+    require_dynamic
+    detection_aliases
+    detection_methods
+    log_level_aliases
+    logging_aliases
+    logging_and_detection_methods
+    logging_methods
 );
 
 # This is overridden in Log::Any::Test
@@ -46,8 +46,8 @@ sub _export_to_caller {
     my @params;
     while ( my $param = shift @_ ) {
         if ( !$saw_log_param && $param =~ /^\$(\w+)/ ) {
-            $saw_log_param = $1;   # defer until later
-            next;                  # singular
+            $saw_log_param = $1;    # defer until later
+            next;                   # singular
         }
         else {
             push @params, $param, shift @_;    # pairwise
@@ -74,35 +74,37 @@ sub get_logger {
 
     my $proxy_class = $class->_get_proxy_class( delete $params{proxy_class} );
     my $category =
-      defined $params{category} ? delete $params{'category'} : caller;
+        defined $params{category} ? delete $params{'category'} : caller;
 
     if ( my $default = delete $params{'default_adapter'} ) {
         my @default_adapter_params = ();
-        if (ref $default eq 'ARRAY') {
-            ($default, @default_adapter_params) = @{ $default };
+        if ( ref $default eq 'ARRAY' ) {
+            ( $default, @default_adapter_params ) = @{$default};
         }
+
         # Every default adapter is set only for a given logger category.
         # When another adapter is configured (by using
         # Log::Any::Adapter->set) for this category, it takes
         # precedence, but if that adapter is later removed, the default
         # we set here takes over again.
-        $class->_manager->set_default(
-            $category, $default, @default_adapter_params
-        );
+        $class->_manager->set_default( $category, $default,
+            @default_adapter_params );
     }
 
-    my $adapter = $class->_manager->get_adapter( $category );
+    my $adapter = $class->_manager->get_adapter($category);
 
     require_dynamic($proxy_class);
     return $proxy_class->new(
-        %params, adapter => $adapter, category => $category,
+        %params,
+        adapter  => $adapter,
+        category => $category,
     );
 }
 
 sub _get_proxy_class {
     my ( $self, $proxy_name ) = @_;
     return $Log::Any::OverrideDefaultProxyClass
-      if $Log::Any::OverrideDefaultProxyClass;
+        if $Log::Any::OverrideDefaultProxyClass;
     return "Log::Any::Proxy" if !$proxy_name && _manager->has_consumer;
     return "Log::Any::Proxy::Null" if !$proxy_name;
     my $proxy_class = (
@@ -135,7 +137,11 @@ In a CPAN or other module:
     # log a string
     $log->error("an error occurred");
 
-    # log a string and data using a formatting filter
+    # log a string and some data
+    $log->info("program started",
+        {progname => $0, pid => $$, perl_version => $]});
+
+    # log a string and data using a format string
     $log->debugf("arguments are: %s", \@_);
 
     # log an error and throw an exception
@@ -278,7 +284,16 @@ C<warn> call).
 You should B<not> include a newline in your message; that is the responsibility
 of the logging mechanism, which may or may not want the newline.
 
-There are also versions of each of these methods with an additional "f" suffix
+If you want to log additional structured data alongside with your string, you
+can add a hashref to your log string. e.g.
+
+    $log->info("program started",
+        {progname => $0, pid => $$, perl_version => $]});
+
+If the configured L<Log::Any::Adapter> does not support logging structured data,
+the hash will be converted to a string using L<Data::Dumper>.
+
+There are also versions of each of the logging methods with an additional "f" suffix
 (C<infof>, C<errorf>, C<debugf>, etc.) that format a list of arguments.  The
 specific formatting mechanism and meaning of the arguments is controlled by the
 L<Log::Any::Proxy> object.
@@ -286,14 +301,15 @@ L<Log::Any::Proxy> object.
     $log->errorf("an error occurred: %s", $@);
     $log->debugf("called with %d params: %s", $param_count, \@params);
 
-By default it renders like C<sprintf>, with the following additional features:
+By default it renders like L<C<sprintf>|perlfunc/"sprintf FORMAT, LIST">,
+with the following additional features:
 
 =over
 
 =item *
 
 Any complex references (like C<\@params> above) are automatically converted to
-single-line strings with C<Data::Dumper>.
+single-line strings with L<Data::Dumper>.
 
 =item *
 
@@ -322,11 +338,33 @@ the detection methods will always return 1.
 In contrast, the default logging mechanism - Null - will return 0 for all
 detection methods.
 
+=head2 Log context data
+
+C<Log::Any> supports logging context data by exposing the C<context>
+hashref. All the key/value pairs added to this hash will be printed
+with every log message. You can localize the data so that it will be
+removed again automatically at the end of the block:
+
+    $log->context->{directory} = $dir;
+    for my $file (glob "$dir/*") {
+        local $log->context->{file} = basename($file);
+        $log->warn("Can't read file!") unless -r $file;
+    }
+
+This will produce the following line:
+
+    Can't read file! {directory => '/foo',file => 'bar'}
+
+If the configured L<Log::Any::Adapter> does not support structured
+data, the context hash will be converted to a string using
+L<Data::Dumper>, and will be appended to the log message.
+
 =head2 Setting an alternate default logger
 
-When no other adapters are configured for your logger, C<Log::Any> uses
-the C<default_adapter>. To choose something other than Null as the
-default, pass it as a parameter when loading C<Log::Any>
+When no other adapters are configured for your logger, C<Log::Any>
+uses the C<default_adapter>. To choose something other than Null as
+the default, either set the C<LOG_ANY_DEFAULT_ADAPTER> environment
+variable, or pass it as a parameter when loading C<Log::Any>
 
     use Log::Any '$log', default_adapter => 'Stderr';
 
@@ -380,7 +418,7 @@ logging mechanism.
 Each of the logging mechanisms have their pros and cons, particularly in terms
 of how they are configured. For example, log4perl offers a great deal of power
 and flexibility but uses a global and potentially heavy configuration, whereas
-C<Log::Dispatch> is extremely configuration-light but doesn't handle
+L<Log::Dispatch> is extremely configuration-light but doesn't handle
 categories. There is also the unnamed future logger that may have advantages
 over either of these two, and all the custom in-house loggers people have
 created and cannot (for whatever reason) stop using.
