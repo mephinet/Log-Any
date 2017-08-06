@@ -5,7 +5,7 @@ use warnings;
 package Log::Any::Proxy;
 
 # ABSTRACT: Log::Any generator proxy object
-our $VERSION = '1.050';
+our $VERSION = '1.051';
 
 use Log::Any::Adapter::Util ();
 use overload;
@@ -42,14 +42,18 @@ sub _default_formatter {
 
 sub new {
     my $class = shift;
-    my $self = { formatter => \&_default_formatter, context => {}, @_ };
+    my $self = { formatter => \&_default_formatter, @_ };
     unless ( $self->{adapter} ) {
         require Carp;
         Carp::croak("$class requires an 'adapter' parameter");
     }
     unless ( $self->{category} ) {
         require Carp;
-        Carp::croak("$class requires an 'category' parameter");
+        Carp::croak("$class requires a 'category' parameter");
+    }
+    unless ( $self->{context} ) {
+        require Carp;
+        Carp::croak("$class requires a 'context' parameter");
     }
     bless $self, $class;
     $self->init(@_);
@@ -58,12 +62,12 @@ sub new {
 
 sub clone {
     my $self = shift;
-    return ( ref $self )->new( %{$self}, @_ );
+    return (ref $self)->new( %{ $self }, @_ );
 }
 
 sub init { }
 
-for my $attr (qw/adapter filter formatter prefix/) {
+for my $attr (qw/adapter filter formatter prefix context/) {
     no strict 'refs';
     *{$attr} = sub { return $_[0]->{$attr} };
 }
@@ -96,10 +100,12 @@ foreach my $name ( Log::Any::Adapter::Util::logging_methods(), keys(%aliases) )
             return unless defined wantarray;
         }
 
-        @parts = grep { defined($_) && length($_) } @parts, grep {scalar keys %$_} $self->{context};
-        if ( grep { ref } @parts ) {
-            @parts = _stringify_params(@parts);
-        }
+        @parts = grep { defined($_) && length($_) } @parts;
+
+        # last part might be a hashref - if so, stringify
+        push @parts, _stringify_params(pop @parts) if ( @parts && ((ref $parts[-1] || '') eq ref {}));
+
+        push @parts, _stringify_params($self->{context}) if %{$self->{context}};
         my $message = join( " ", @parts );
         if ( length $message && !$structured_logging ) {
             $message =
@@ -121,11 +127,6 @@ foreach my $name ( Log::Any::Adapter::Util::logging_methods(), keys(%aliases) )
         return unless defined $message and length $message;
         return $self->$name($message);
     };
-}
-
-sub context {
-    my ($self) = @_;
-    return $self->{context};
 }
 
 1;
@@ -281,7 +282,7 @@ flexible/powerful than L</filter>, but avoids an extra function call.
 =head2 Logging Structured Data
 
 If you have data in addition to the text you want to log, you can
-specify a hashref together with your string. If the configured adapter
+specify a hashref after your string. If the configured adapter
 supports structured data, it will receive the hashref as-is, otherwise
 it will be converted to a string using L<Data::Dumper> and will be
 appended to your text.

@@ -4,7 +4,7 @@ Log::Any - Bringing loggers and listeners together
 
 # VERSION
 
-version 1.049
+version 1.050
 
 # STATUS
 
@@ -168,7 +168,7 @@ You should **not** include a newline in your message; that is the responsibility
 of the logging mechanism, which may or may not want the newline.
 
 If you want to log additional structured data alongside with your string, you
-can add a hashref to your log string. e.g.
+can add a single hashref after your log string. e.g.
 
     $log->info("program started",
         {progname => $0, pid => $$, perl_version => $]});
@@ -325,8 +325,6 @@ See the [Log::Any::Adapter](https://metacpan.org/pod/Log::Any::Adapter) document
 - Maxim Vuets <maxim.vuets@booking.com>
 - mephinet <mephinet@gmx.net>
 - Philipp Gortan <philipp.gortan@apa.at>
-- Stephen Thirlwall <sdt@dr.com>
-- Stephen Thirlwall <stephen.thirlwall@strategicdata.com.au>
 
 # COPYRIGHT AND LICENSE
 

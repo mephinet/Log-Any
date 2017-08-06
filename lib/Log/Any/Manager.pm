@@ -4,7 +4,7 @@ use warnings;
 
 package Log::Any::Manager;
 
-our $VERSION = '1.050';
+our $VERSION = '1.051';
 
 sub new {
     my $class = shift;
@@ -16,6 +16,8 @@ sub new {
         category_cache  => {},
         # The adapter to use if no other adapter is appropriate
         default_adapter => {},
+        # The context hashref that is passed to all proxies
+        context => {},
     };
     bless $self, $class;
 
@@ -44,6 +46,11 @@ sub get_adapter {
 {
     no warnings 'once';
     *get_logger = \&get_adapter;    # backwards compatibility
+}
+
+sub get_context {
+    my ( $self ) = @_;
+    return $self->{context};
 }
 
 sub _choose_entry_for_category {

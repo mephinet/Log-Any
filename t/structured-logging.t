@@ -46,31 +46,26 @@ is_deeply(
     \@TestAdapters::STRUCTURED_LOG,
     [   { messages => ['some info'], level => 'info', category => 'main' },
         { messages => ['more info'], level => 'info', category => 'main' },
-        {   messages => ['info {with => "data"} and more text'],
-            level    => 'info',
-            category => 'main'
+        { messages => ['info {with => "data"} and more text'],
+          level    => 'info',
+          category => 'main'
         },
         {   messages => ['program started'],
             level    => 'debug',
             category => 'main',
             data     => [
-                {   perl_version => "5.20.0",
-                    progname     => "foo.pl",
-                    pid          => 1234
-                }
-            ]
+                { perl_version => "5.20.0", progname => "foo.pl", pid => 1234 }
+                ]
         },
         {   messages => [ 'text', 'and some more text' ],
             data     => [
-                {   and => [
-                        'structured', 'data',
-                        of => [ arbitrary => 'depth' ]
-                    ]
+                {   and =>
+                        [ 'structured', 'data', of => [ arbitrary => 'depth' ] ]
                 }
-            ],
+                ],
             level    => 'info',
             category => 'main'
         }
     ],
     'identical output of normal log lines when using structured log adapter'
-);
+    );

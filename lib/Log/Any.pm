@@ -5,18 +5,18 @@ use warnings;
 package Log::Any;
 
 # ABSTRACT: Bringing loggers and listeners together
-our $VERSION = '1.050';
+our $VERSION = '1.051';
 
 use Log::Any::Manager;
 use Log::Any::Proxy::Null;
 use Log::Any::Adapter::Util qw(
-    require_dynamic
-    detection_aliases
-    detection_methods
-    log_level_aliases
-    logging_aliases
-    logging_and_detection_methods
-    logging_methods
+  require_dynamic
+  detection_aliases
+  detection_methods
+  log_level_aliases
+  logging_aliases
+  logging_and_detection_methods
+  logging_methods
 );
 
 # This is overridden in Log::Any::Test
@@ -46,8 +46,8 @@ sub _export_to_caller {
     my @params;
     while ( my $param = shift @_ ) {
         if ( !$saw_log_param && $param =~ /^\$(\w+)/ ) {
-            $saw_log_param = $1;    # defer until later
-            next;                   # singular
+            $saw_log_param = $1;   # defer until later
+            next;                  # singular
         }
         else {
             push @params, $param, shift @_;    # pairwise
@@ -74,37 +74,36 @@ sub get_logger {
 
     my $proxy_class = $class->_get_proxy_class( delete $params{proxy_class} );
     my $category =
-        defined $params{category} ? delete $params{'category'} : caller;
+      defined $params{category} ? delete $params{'category'} : caller;
 
     if ( my $default = delete $params{'default_adapter'} ) {
         my @default_adapter_params = ();
-        if ( ref $default eq 'ARRAY' ) {
-            ( $default, @default_adapter_params ) = @{$default};
+        if (ref $default eq 'ARRAY') {
+            ($default, @default_adapter_params) = @{ $default };
         }
-
         # Every default adapter is set only for a given logger category.
         # When another adapter is configured (by using
         # Log::Any::Adapter->set) for this category, it takes
         # precedence, but if that adapter is later removed, the default
         # we set here takes over again.
-        $class->_manager->set_default( $category, $default,
-            @default_adapter_params );
+        $class->_manager->set_default(
+            $category, $default, @default_adapter_params
+        );
     }
 
-    my $adapter = $class->_manager->get_adapter($category);
+    my $adapter = $class->_manager->get_adapter( $category );
+    my $context = $class->_manager->get_context();
 
     require_dynamic($proxy_class);
     return $proxy_class->new(
-        %params,
-        adapter  => $adapter,
-        category => $category,
+        %params, adapter => $adapter, category => $category, context => $context
     );
 }
 
 sub _get_proxy_class {
     my ( $self, $proxy_name ) = @_;
     return $Log::Any::OverrideDefaultProxyClass
-        if $Log::Any::OverrideDefaultProxyClass;
+      if $Log::Any::OverrideDefaultProxyClass;
     return "Log::Any::Proxy" if !$proxy_name && _manager->has_consumer;
     return "Log::Any::Proxy::Null" if !$proxy_name;
     my $proxy_class = (
@@ -285,7 +284,7 @@ You should B<not> include a newline in your message; that is the responsibility
 of the logging mechanism, which may or may not want the newline.
 
 If you want to log additional structured data alongside with your string, you
-can add a hashref to your log string. e.g.
+can add a single hashref after your log string. e.g.
 
     $log->info("program started",
         {progname => $0, pid => $$, perl_version => $]});
