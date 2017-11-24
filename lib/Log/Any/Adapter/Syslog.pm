@@ -5,7 +5,7 @@ use warnings;
 package Log::Any::Adapter::Syslog;
 
 # ABSTRACT: Send Log::Any logs to syslog
-our $VERSION = '1.051';
+our $VERSION = '1.702';
 
 use Log::Any::Adapter::Util qw{make_method};
 use base qw{Log::Any::Adapter::Base};
@@ -97,13 +97,13 @@ foreach my $method (Log::Any->logging_methods()) {
         notice    => "notice",
         warning   => "warning",
         warn      => "warning",
-        error     => "error",
-        err       => "error",
-        critical  => "critical",
-        crit      => "critical",
-        fatal     => "critical",
+        error     => "err",
+        err       => "err",
+        critical  => "crit",
+        crit      => "crit",
+        fatal     => "crit",
         alert     => "alert",
-        emergency => "emergency",
+        emergency => "emerg",
     }->{$method};
     defined($priority) or $priority = "error"; # unknown, take a guess.
 
