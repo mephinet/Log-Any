@@ -4,6 +4,21 @@ Revision history for Log-Any
 
 {{ $NEXT }}
 
+1.703     2017-11-29 10:56:17-06:00 America/Chicago
+
+    [Fixed]
+
+    - Fixed log format methods (errorf, warnf, infof, etc...) not
+      returning the formatted message sometimes. Thanks @vshekun!
+      [Github #64]
+
+1.702     2017-11-28 15:18:40-06:00 America/Chicago
+
+    [Fixed]
+
+    - Fixed log output disappearing when the `default_adapter` is set.
+      Thanks @dallaylaen! [Github #65]
+
 1.701     2017-10-02 14:36:51-05:00 America/Chicago
 
     [Fixed]
