@@ -5,7 +5,7 @@ use warnings;
 package Log::Any;
 
 # ABSTRACT: Bringing loggers and listeners together
-our $VERSION = '1.704';
+our $VERSION = '1.706';
 
 use Log::Any::Manager;
 use Log::Any::Proxy::Null;
@@ -379,8 +379,8 @@ used again.
 
 =head2 Configuring the proxy
 
-Any parameter passed on the import line or via the C<get_logger> method
-are passed on the the L<Log::Any::Proxy> constructor.
+Any parameters passed on the import line or via the C<get_logger> method
+are passed on to the L<Log::Any::Proxy> constructor.
 
     use Log::Any '$log', filter => \&myfilter;
 
